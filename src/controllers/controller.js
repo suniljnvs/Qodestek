@@ -1,6 +1,8 @@
 const { model } = require("mongoose");
-let signUpModel = require("../models/model");
-// let jwt = require("jsonwebtoken");
+let signUpModel = require("../models/userModel");
+let productModel = require("../models/productModel");
+const jwt=require('jsonwebtoken');
+
 
 
 
@@ -23,7 +25,7 @@ let signup_User = async function (req, res) {
 
         let mobileNoIsUsed = await signUpModel.findOne({ mobile })
         if (mobileNoIsUsed) {
-           throw new Error("this mobile no all ready used")
+            throw new Error("this mobile no all ready used")
         }
 
         const newSignup = await signUpModel.create(requestBody);
@@ -35,58 +37,52 @@ let signup_User = async function (req, res) {
     }
 }
 
-// //====================================< login Authores >===========================================
+//create  login API
 
-// const loginAuthor = async function(req, res){
-//     try {
-//         let requestBody = req.body;
+const login_User = async function (req, res) {
+    const mobile = req.body.mobile;
+    const password = req.body.password;
+    try {
+        const user = await signUpModel.findOne({ mobile: mobile });
+        if (user.password === password) {
 
-//         if (!isValidReqestBody(requestBody)) {
-//             res.status(400).send({ status: false, message: "Invalid request parameter. Please provide login details" });
-//             return
-//         }
+            const token = jwt.sign(
+                {
+                    userId: user._id.toString(),
+                    name: 'Sunil',
 
-//         // Extract params
-//         const { email, password } = requestBody;
+                    iat: Math.floor(Date.now() / 1000)
+                },
+                "secretSunil",
 
-//         // validation starts is here
-//         if (!isValid(email)) {
-//             res.status(400).send({ status: false, msg: "Email is required" });
-//             return
-//         };
+                { expiresIn: '1h' });
 
-//         if (!isValid((/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).test(email))) {
-//             res.status(400).send({ status: false, message: "Please provide valid email address" })
-//             return
-//         }
+            res.setHeader('x-auth-key', token);
+            res.status(200).send({ status: true, token: token, message: "login successfully" });
 
-//         if (!isValid(password)) {
-//             res.status(400).send({ status: false, msg: "Password is required" });
-//             return
-//         }
-//         // Validation ends
+        } else {
+            res.send({ message: "login failed" });
+        }
 
-//         const author = await authorModel.findOne({ email, password });
-
-//         if (!author) {
-//             res.status(400).send({ status: false, message: "Invalid login credential" });
-//             return
-//         }
-
-//         let token = await jwt.sign({
-//             authorId: author._id,
-//             iat: Math.floor(Date.now() / 1000),
-//             exp: Math.floor(Date.now() / 1000) + 10 * 60 * 60
-//         },
-//          "Sunil_project_01");
-
-//         res.header('x-api-key', token);
-//         res.status(201).send({ status: true, message: "Author login successfully", data: { token } })
-
-//     } catch (error) {
-//         res.status(500).send({ status: false, message: error.message })
-//     }
-// }
+    } catch (error) {
+        res.status(500).send({
+            message: error.message || "Some error occurred while creating a create operation"
+        });
+    }
+}
 
 
-module.exports = { signup_User }
+const create_Product = async function(req,res){
+    try {
+        const product = req.body;
+
+        const productData = await productModel.create (product);
+        res.status(201).send({ status: true, message: "Product created successfully", data:productData  })
+        
+    } catch (error) {
+        res.status(500).send({ status: false, message: error.message })
+    }
+}
+
+
+module.exports = { signup_User, login_User,create_Product }

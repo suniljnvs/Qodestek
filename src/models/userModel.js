@@ -3,36 +3,36 @@ let mongoose = require('mongoose');
 let signupSchema = new mongoose.Schema({
     fname: {
         type: String,
-        required: "First name is required"
+        required: true
     },
 
     lname: {
         type: String,
-        required: "Last name is required"
+        required: true
     },
 
     gender: {
         type: String,
         enum: ["male", "female", "other"],
-        required: "Gender is required"
+        required: true
     },
 
     mobile : {
         type : Number,
-        require : "Mobile no is required",
+        require : true,
         unique : true
     },
 
     email: {
         type: String,
-        required: "Email is required",
+        required: true,
         trim: true,
         lowercase: true,      
     },
 
     password: {
         type: String,
-        required: 'Password is required',
+        required: true,
         trim: true
     }
 }, { timestamps: true });
